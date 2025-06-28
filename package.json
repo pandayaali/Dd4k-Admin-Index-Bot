@@ -4,7 +4,7 @@
   "description": "Telegram bot with auto repost",
   "main": "bot.js",
   "scripts": {
-    "start": "concurrently \"node bot.js\" \"node admin.js\""
+    "start": "node main.js"
   },
   "dependencies": {
     "concurrently": "^8.0.1",
