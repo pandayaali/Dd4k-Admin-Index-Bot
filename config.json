@@ -1,0 +1,15 @@
+{
+  "last_run": "2025-06-28",
+  "main_channel_range": {
+    "start_id": 806,
+    "end_id": 828
+  },
+  "backup_channel_range": {
+    "start_id": 855,
+    "end_id": 877
+  },
+  "deleted_main_range": {
+    "start_id": 806,
+    "end_id": 828
+  }
+}
