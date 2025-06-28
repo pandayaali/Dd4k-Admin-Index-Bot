@@ -1,0 +1,128 @@
+{
+  "msg_1750845217164": {
+    "text": "Hiiii",
+    "entities": []
+  },
+  "msg_1750908198535": {
+    "text": "🎉 Welcome to our Channel 🎉\n                                ~DD4k Twins\n\n\nWebsite Link:\nCLICK HERE",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 29,
+        "type": "bold"
+      },
+      {
+        "offset": 61,
+        "length": 11,
+        "type": "italic"
+      },
+      {
+        "offset": 75,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 89,
+        "length": 10,
+        "type": "text_link",
+        "url": "https://dd4ktwins.blogspot.com/p/dd4k-twins-presents.html"
+      },
+      {
+        "offset": 89,
+        "length": 10,
+        "type": "bold"
+      }
+    ]
+  },
+  "msg_1750908276502": {
+    "text": "🎉 Welcome to our Channel 🎉  ~DD4k Twins\n\n\nWebsite Link:\nCLICK HERE 👈",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 26,
+        "type": "bold"
+      },
+      {
+        "offset": 30,
+        "length": 11,
+        "type": "italic"
+      },
+      {
+        "offset": 44,
+        "length": 13,
+        "type": "bold"
+      },
+      {
+        "offset": 58,
+        "length": 10,
+        "type": "text_link",
+        "url": "https://dd4ktwins.blogspot.com/p/dd4k-twins-presents.html"
+      },
+      {
+        "offset": 58,
+        "length": 10,
+        "type": "bold"
+      }
+    ]
+  },
+  "msg_1750908339019": {
+    "text": "👉 CLICK HERE 👈",
+    "entities": [
+      {
+        "offset": 3,
+        "length": 10,
+        "type": "text_link",
+        "url": "https://t.me/Dd4k_index_bot?start=msg_1750908276502"
+      },
+      {
+        "offset": 3,
+        "length": 10,
+        "type": "bold"
+      }
+    ]
+  },
+  "msg_1750963268752": {
+    "text": "How to Train my Dragon Series\n[3 Movies Collections]\n\nUnlock Now 🔗:\nhttps://adrinolinks.in/Z0T9G",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 69,
+        "type": "bold"
+      },
+      {
+        "offset": 69,
+        "length": 28,
+        "type": "url"
+      },
+      {
+        "offset": 69,
+        "length": 28,
+        "type": "bold"
+      }
+    ]
+  },
+  "msg_1751027514361": {
+    "text": "Face wash vanthuruchaa??\n\nFtume vanthurucha??? Vera ethum order podanumaa??",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 75,
+        "type": "bold"
+      }
+    ]
+  },
+  "msg_1751027532026": {
+    "text": "Face wash vanthuruchaa??\n\nFtune vanthurucha??? Vera ethum order podanumaa??",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 75,
+        "type": "bold"
+      }
+    ]
+  },
+  "msg_1751029472492": {
+    "text": "Squid game",
+    "entities": []
+  }
+}
