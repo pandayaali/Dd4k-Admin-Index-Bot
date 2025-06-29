@@ -1,28 +1,53 @@
+(async () => {
+
 require('events').EventEmitter.defaultMaxListeners = 20;
 
 const { Telegraf } = require("telegraf");
 const fs = require("fs");
 const express = require("express");
 const app = express();
+const axios = require("axios");
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const BOT_USERNAME = process.env.BOT_USERNAME;
+const JSONBIN_KEY = process.env.JSONBIN_KEY;
+
+const ATTACH_BIN = process.env.ATTACH_BIN;
+const IMAGE_BIN = process.env.IMAGE_BIN;
+const CHANNEL_BIN = process.env.CHANNEL_BIN;
+
+async function loadJson(binId) {
+  const res = await axios.get(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { "X-Access-Key": JSONBIN_KEY }
+  });
+  return res.data.record;
+}
+
+async function saveJson(binId, data) {
+  await axios.put(`https://api.jsonbin.io/v3/b/${binId}`, data, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-Access-Key": JSONBIN_KEY
+    }
+  });
+}
 
 app.get("/", (req, res) => res.send("Attach Bot is Live!"));
 app.listen(3000);
 
 // 🟢 BOT SETUP
-const bot = new Telegraf("7891454474:AAFBoR9Er9LquFks7qLVpQjsyrLdBBk7CoA");
-const botUsername = "Dd4k_index_bot";
+require("dotenv").config();
+const bot = new Telegraf(process.env.BOT_TOKEN_ATTACH);
+const botUsername = process.env.BOT_USERNAME_ATTACH;
 const admins = [1081656301, 1361262107]; // 🔐 Add admin IDs here
 
 let waitingForMessage = {};
-let imageData = {};
-try {
-  imageData = JSON.parse(fs.readFileSync("image.json"));
-} catch (e) {}
+let imageData = await loadJson(IMAGE_BIN);
 
 let channelData = {};
 try {
-  channelData = JSON.parse(fs.readFileSync("channel.json"));
-} catch (e) {
+  channelData = await loadJson(CHANNEL_BIN);
+} catch {
   channelData = { channel_id: null };
 }
 
@@ -31,12 +56,9 @@ bot.start(async (ctx) => {
   const payload = ctx.startPayload;
 
   if (payload && payload.startsWith("msg_")) {
-    let data = {};
-    try {
-      data = JSON.parse(fs.readFileSync("attach.json"));
-    } catch (e) {}
+    let attachData = await loadJson(ATTACH_BIN);
 
-    const entry = data[payload];
+    const entry = attachData[payload];
     if (entry) {
       if (imageData && imageData.file_id) {
         const sent = await ctx.telegram.sendPhoto(ctx.chat.id, imageData.file_id, {
@@ -108,7 +130,7 @@ bot.on("message", async (ctx) => {
   if (waitType === "set_private_channel" && ctx.message.forward_from_chat) {
     const channelId = ctx.message.forward_from_chat.id;
     channelData.channel_id = channelId;
-    fs.writeFileSync("channel.json", JSON.stringify(channelData, null, 2));
+    await saveJson(CHANNEL_BIN, channelData);
     delete waitingForMessage[uid];
     return ctx.reply(`✅ Private Channel ID saved: \`${channelId}\``, { parse_mode: "Markdown" });
   }
@@ -121,27 +143,31 @@ bot.on("message", async (ctx) => {
     const fwd = await ctx.telegram.sendPhoto(channelData.channel_id, fileId, { caption: "DD4K Permanent Image" });
 
     imageData = { file_id: fwd.photo[fwd.photo.length - 1].file_id };
-    fs.writeFileSync("image.json", JSON.stringify(imageData, null, 2));
+    await saveJson(IMAGE_BIN, imageData);
 
     delete waitingForMessage[uid];
     return ctx.reply("✅ Image saved permanently in private channel!");
   }
 
   // 📎 Attach message
-  if (waitType === true && ctx.message.text) {
-    const msgId = `msg_${Date.now()}`;
-    let data = {};
-    try { data = JSON.parse(fs.readFileSync("attach.json")); } catch (e) {}
-    data[msgId] = {
-      text: ctx.message.text,
-      entities: ctx.message.entities || []
-    };
-    fs.writeFileSync("attach.json", JSON.stringify(data, null, 2));
-    const link = `https://t.me/${botUsername}?start=${msgId}`;
-    await ctx.reply(`✅ Message saved!\n\n🔗 Link: ${link}`);
-    delete waitingForMessage[uid];
-  }
-});
+  // 📎 Attach message
+if (waitType === true && ctx.message.text) {
+  const msgId = `msg_${Date.now()}`;
+  let attachData = {};
+  try {
+    attachData = await loadJson(ATTACH_BIN);
+  } catch (e) {}
+
+  attachData[msgId] = {
+    text: ctx.message.text,
+    entities: ctx.message.entities || []
+  };
+
+  await saveJson(ATTACH_BIN, attachData);
+  const link = `https://t.me/${botUsername}?start=${msgId}`;
+  await ctx.reply(`✅ Message saved!\n\n🔗 Link: ${link}`);
+  delete waitingForMessage[uid];
+}
 
 // ✅ Set Commands Menu
 bot.telegram.setMyCommands([
@@ -154,3 +180,5 @@ bot.telegram.setMyCommands([
 // ✅ Launch
 bot.launch();
 console.log("🤖 Attach Bot is running with Private Channel Image & Auto Delete!");
+
+})();
