@@ -1,15 +1,31 @@
 const { Telegraf } = require("telegraf");
-const fs = require("fs");
 const schedule = require("node-schedule");
+const axios = require("axios");
 
-const bot = new Telegraf("7762779405:AAFCaqTA1ofXquZEHcR1sQJtYHzKi618ksg");
+const JSONBIN_KEY = process.env.JSONBIN_KEY;
+const CONFIG_BIN = process.env.CONFIG_BIN;
+const STORAGE_BIN = process.env.STORAGE_BIN;
+
+async function loadJson(binId) {
+  const res = await axios.get(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { "X-Access-Key": JSONBIN_KEY }
+  });
+  return res.data.record;
+}
+
+async function saveJson(binId, data) {
+  await axios.put(`https://api.jsonbin.io/v3/b/${binId}`, data, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-Access-Key": JSONBIN_KEY
+    }
+  });
+}
+
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // ✅ Admins
 const ADMINS = [1081656301, 1361262107, 6335193759];
-
-// 📁 File paths
-const storagePath = "storage.json";
-const configPath = "config.json";
 
 // ✅ Utilities
 function sleep(ms) {
@@ -18,20 +34,8 @@ function sleep(ms) {
 function isAdmin(ctx) {
   return ADMINS.includes(ctx.from.id);
 }
-function saveStorage() {
-  fs.writeFileSync(storagePath, JSON.stringify(storage, null, 2));
-}
-function saveConfig(cfg) {
-  fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2));
-}
-function loadConfig() {
-  if (!fs.existsSync(configPath)) return {
-    last_run: null, main_channel_range: {}, backup_channel_range: {}, deleted_main_range: {}
-  };
-  return JSON.parse(fs.readFileSync(configPath));
-}
 
-let storage = fs.existsSync(storagePath) ? JSON.parse(fs.readFileSync(storagePath)) : {};
+let storage = await loadJson(STORAGE_BIN);
 
 // 🔒 Set static message
 bot.command("setstaticmessage", async (ctx) => {
@@ -40,7 +44,7 @@ bot.command("setstaticmessage", async (ctx) => {
   if (reply) {
     storage.static_channel = ctx.chat.id;
     storage.static_message_id = reply.message_id;
-    saveStorage();
+    await saveJson(STORAGE_BIN, storage);
     return ctx.reply("✅ Static message set from reply");
   }
   const parts = ctx.message.text.split(" ");
@@ -51,7 +55,7 @@ bot.command("setstaticmessage", async (ctx) => {
   if (!match) return ctx.reply("❌ Invalid link format");
   storage.static_channel = "@" + match[1];
   storage.static_message_id = parseInt(match[2]);
-  saveStorage();
+  await saveJson(STORAGE_BIN, storage);
   ctx.reply("✅ Static message set from link");
 });
 
@@ -69,7 +73,7 @@ bot.on("message", async (ctx) => {
   const chatId = ctx.message.forward_from_chat?.id || ctx.message.sender_chat?.id;
   if (!chatId) return ctx.reply("❌ Invalid forward");
   storage.forward_channel_id = chatId;
-  saveStorage();
+  await saveJson(STORAGE_BIN, storage);
   waitingFor.forward = null;
   ctx.reply("✅ Forward channel saved");
 });
@@ -94,7 +98,7 @@ schedule.scheduleJob({ hour: 18, minute: 51, tz: "Asia/Kolkata" }, async () => {
   const forward = storage.forward_channel_id;
   const main = storage.static_channel;
   const staticId = storage.static_message_id;
-  const config = loadConfig();
+  const config = await loadJson(CONFIG_BIN);
 
   // 🧹 Clean private backup channel
   for (let i = 1; i <= 200; i++) {
@@ -103,7 +107,6 @@ schedule.scheduleJob({ hour: 18, minute: 51, tz: "Asia/Kolkata" }, async () => {
 
   let mainIDs = [], backupIDs = [];
 
-  const configs = loadConfig();
 let i = Math.max(staticId + 1, (config.deleted_main_range?.end_id || 0) + 1);
 let skippedCount = 0;
 while (skippedCount < 20) {
@@ -140,7 +143,7 @@ while (skippedCount < 20) {
   config.last_run = new Date().toISOString().split("T")[0];
   config.main_channel_range = { start_id: mainIDs[0] || 0, end_id: mainIDs.at(-1) || 0 };
   config.backup_channel_range = { start_id: backupIDs[0] || 0, end_id: backupIDs.at(-1) || 0 };
-  saveConfig(config);
+  await saveJson(CONFIG_BIN, config);
 
   console.log("[1] ✅ Backup complete.");
 });
@@ -148,7 +151,7 @@ while (skippedCount < 20) {
 // 🔁 Repost Job
 schedule.scheduleJob({ hour: 18, minute: 54, tz: "Asia/Kolkata" }, async () => {
   console.log("[1] 🔁 Repost started...");
-  const config = loadConfig();
+  const config = await loadJson(CONFIG_BIN);
   const main = storage.static_channel;
 
   // 🗑 Delete existing reposts
@@ -160,7 +163,7 @@ schedule.scheduleJob({ hour: 18, minute: 54, tz: "Asia/Kolkata" }, async () => {
     start_id: config.main_channel_range.start_id,
     end_id: config.main_channel_range.end_id
   };
-  saveConfig(config);
+  await saveJson(CONFIG_BIN, config);
 
   // ♻ Repost all from private
   for (let i = config.backup_channel_range.start_id; i <= config.backup_channel_range.end_id; i++) {
@@ -190,7 +193,7 @@ schedule.scheduleJob({ hour: 18, minute: 54, tz: "Asia/Kolkata" }, async () => {
   
   // 🧹 Final wipe of backup channel after repost
 console.log("🧹 Final wipe of backup channel after repost...");
-const configes = loadConfig();
+const configes = await loadJson(CONFIG_BIN); // ✅ Correct
 const from = Math.max((configes.backup_channel_range.start_id || 2) - 1, 1);
 const to = configes.backup_channel_range.end_id || from + 200;
 
@@ -222,9 +225,9 @@ async function preBackupCheck() {
       found = true;
       console.log(`✅ Found next message at ID: ${nextId}`);
 
-      const config = loadConfig();
+      const config = await loadJson(CONFIG_BIN);
       config.deleted_main_range = { start_id: staticId, end_id: nextId - 1 };
-      saveConfig(config);
+      await saveJson(CONFIG_BIN, config);
     } catch (e) {
       const desc = e.description || "";
       if (desc.includes("not found") || desc.includes("message to copy not found")) {
@@ -266,3 +269,6 @@ bot.command("menu", (ctx) => {
 
 console.log("🤖 Admin bot running...");
 bot.launch();
+
+
+7762779405:AAFCaqTA1ofXquZEHcR1sQJtYHzKi618ksg
