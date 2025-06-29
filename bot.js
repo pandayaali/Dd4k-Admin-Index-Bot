@@ -167,7 +167,8 @@ if (waitType === true && ctx.message.text) {
   const link = `https://t.me/${botUsername}?start=${msgId}`;
   await ctx.reply(`✅ Message saved!\n\n🔗 Link: ${link}`);
   delete waitingForMessage[uid];
-}
+} // ✅ This closes bot.on("message")
+);
 
 // ✅ Set Commands Menu
 bot.telegram.setMyCommands([
