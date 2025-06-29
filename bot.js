@@ -3,7 +3,6 @@
 require('events').EventEmitter.defaultMaxListeners = 20;
 
 const { Telegraf } = require("telegraf");
-const fs = require("fs");
 const express = require("express");
 const app = express();
 const axios = require("axios");
@@ -35,8 +34,7 @@ async function saveJson(binId, data) {
 app.get("/", (req, res) => res.send("Attach Bot is Live!"));
 app.listen(3000);
 
-// 🟢 BOT SETUP
-require("dotenv").config();
+// 🟢 BOT SET
 const bot = new Telegraf(process.env.BOT_TOKEN_ATTACH);
 const botUsername = process.env.BOT_USERNAME_ATTACH;
 const admins = [1081656301, 1361262107]; // 🔐 Add admin IDs here
