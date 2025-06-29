@@ -1,3 +1,5 @@
+(async () => {
+
 const { Telegraf } = require("telegraf");
 const schedule = require("node-schedule");
 const axios = require("axios");
@@ -270,5 +272,4 @@ bot.command("menu", (ctx) => {
 console.log("🤖 Admin bot running...");
 bot.launch();
 
-
-7762779405:AAFCaqTA1ofXquZEHcR1sQJtYHzKi618ksg
+})();
