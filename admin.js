@@ -22,7 +22,7 @@ async function saveJson(binId, data) {
   });
 }
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(process.env.ADMIN_BOT_TOKEN);
 
 // ✅ Admins
 const ADMINS = [1081656301, 1361262107, 6335193759];
