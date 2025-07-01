@@ -92,10 +92,10 @@ bot.command("testcopy", async (ctx) => {
 });
 
 // ⏱️ Schedule pre-check 5 minutes before backup
-schedule.scheduleJob({ hour: 11, minute: 25, tz: "Asia/Kolkata" }, preBackupCheck);
+schedule.scheduleJob({ hour: 3, minute: 10, tz: "Asia/Kolkata" }, preBackupCheck);
 
 // 📦 Backup Job
-schedule.scheduleJob({ hour: 11, minute: 30, tz: "Asia/Kolkata" }, async () => {
+schedule.scheduleJob({ hour: 3, minute: 30, tz: "Asia/Kolkata" }, async () => {
   console.log("[1] 📦 Backup started...");
   const forward = storage.forward_channel_id;
   const main = storage.static_channel;
@@ -151,7 +151,7 @@ while (skippedCount < 20) {
 });
 
 // 🔁 Repost Job
-schedule.scheduleJob({ hour: 11, minute: 35, tz: "Asia/Kolkata" }, async () => {
+schedule.scheduleJob({ hour: 3, minute: 55, tz: "Asia/Kolkata" }, async () => {
   console.log("[1] 🔁 Repost started...");
   const config = await loadJson(CONFIG_BIN);
   const main = storage.static_channel;
